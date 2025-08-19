@@ -22,6 +22,12 @@ export function Header() {
               Dashboard
             </Link>
             <Link
+              href="/domains"
+              className="text-foreground/60 transition-colors hover:text-foreground/80"
+            >
+              Domains
+            </Link>
+            <Link
               href="#"
               className="text-foreground/60 transition-colors hover:text-foreground/80"
             >
@@ -61,6 +67,12 @@ export function Header() {
                       className="transition-colors hover:text-foreground/80 py-2"
                     >
                       Dashboard
+                    </Link>
+                    <Link
+                      href="/domains"
+                      className="text-foreground/60 transition-colors hover:text-foreground/80 py-2"
+                    >
+                      Domains
                     </Link>
                     <Link
                       href="#"
