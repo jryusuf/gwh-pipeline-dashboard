@@ -6,6 +6,11 @@ import { ScrapeResultsChart } from '@/components/scrape-results-chart';
 import { DailyGrantsChart } from '@/components/daily-grants-chart';
 import { GrantClustersTable } from '@/components/grant-clusters-table';
 import { Header } from '@/components/header';
+import { useAuth } from '@/lib/auth-context';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LogInIcon } from 'lucide-react';
 
 interface ScrapeResult {
   id: string;
@@ -34,6 +39,8 @@ interface GrantCluster {
 }
 
 export default function Home() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
   const [scrapeData, setScrapeData] = useState<ScrapeResult[]>([]);
   const [grantsData, setGrantsData] = useState<RawGrant[]>([]);
   const [grantClustersData, setGrantClustersData] = useState<GrantCluster[]>([]);
@@ -55,8 +62,17 @@ export default function Home() {
   const [hideSingleGrants, setHideSingleGrants] = useState(false);
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
 
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
   // Fetch initial data
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -100,10 +116,12 @@ export default function Home() {
     };
 
     fetchData();
-  }, []);
+  }, [isAuthenticated]);
 
   // Fetch all unique organizations
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchOrganizations = async () => {
       try {
         const { data, error } = await supabase
@@ -126,10 +144,12 @@ export default function Home() {
     };
 
     fetchOrganizations();
-  }, []);
+  }, [isAuthenticated]);
 
   // Fetch grant clusters with pagination and filters
   const fetchGrantClusters = async () => {
+    if (!isAuthenticated) return;
+
     try {
       setGrantClustersLoading(true);
       
@@ -202,8 +222,47 @@ export default function Home() {
   // Fetch grant clusters with pagination and filters
   useEffect(() => {
     fetchGrantClusters();
-  }, [grantClustersPage, grantClustersPageSize, hideEmptyAmount, hideEmptyUrl, hideEmptyEligibility, hideEmptyDescription, hideEmptyOrganization, hideEmptyDate, hideSingleGrants, selectedOrganizations]);
+  }, [grantClustersPage, grantClustersPageSize, hideEmptyAmount, hideEmptyUrl, hideEmptyEligibility, hideEmptyDescription, hideEmptyOrganization, hideEmptyDate, hideSingleGrants, selectedOrganizations, isAuthenticated]);
 
+  if (isLoading) {
+    return (
+      <div className="font-sans flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-10 lg:py-12">
+          <div className="flex justify-center items-center h-64">
+            <p className="text-lg">Loading...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="font-sans flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-10 lg:py-12">
+          <Card className="max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle>Access Denied</CardTitle>
+              <CardDescription>
+                You need to be logged in to access this dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() => router.push('/login')}
+                className="w-full"
+              >
+                <LogInIcon className="mr-2 h-4 w-4" />
+                Go to Login
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="font-sans flex flex-col min-h-screen">
@@ -223,7 +282,7 @@ export default function Home() {
             </div>
             <div className="w-full">
               <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Grant Clusters</h2>
-              <GrantClustersTable 
+              <GrantClustersTable
                 data={grantClustersData}
                 loading={grantClustersLoading}
                 totalCount={grantClustersTotalCount}

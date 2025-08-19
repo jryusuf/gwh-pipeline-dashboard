@@ -7,6 +7,11 @@ import { DomainDonutChart } from '@/components/domain-statistics/domain-donut-ch
 import { DailyProbeLineChart } from '@/components/domain-statistics/daily-probe-line-chart';
 import { DomainProbeTable } from '@/components/domain-statistics/domain-probe-table';
 import { Header } from '@/components/header';
+import { useAuth } from '@/lib/auth-context';
+import { useRouter } from 'next/navigation';
+import { Card as AuthCard, CardContent as AuthCardContent, CardDescription as AuthCardDescription, CardHeader as AuthCardHeader, CardTitle as AuthCardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LogInIcon } from 'lucide-react';
 
 interface DomainStats {
   total_domains: number;
@@ -25,6 +30,8 @@ interface DomainProbe {
 }
 
 export default function DomainsPage() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
   const [domainStats, setDomainStats] = useState<DomainStats | null>(null);
   const [dailyProbeData, setDailyProbeData] = useState<DailyProbeCount[]>([]);
   const [domainProbes, setDomainProbes] = useState<DomainProbe[]>([]);
@@ -38,13 +45,24 @@ export default function DomainsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
+  // Redirect if not authenticated
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+
+    fetchData();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     fetchDomainProbes();
-  }, [dateRange, pageIndex, pageSize]);
+  }, [dateRange, pageIndex, pageSize, isAuthenticated]);
 
   const fetchData = async () => {
     try {
@@ -158,9 +176,50 @@ export default function DomainsPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="font-sans flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 py-6">
+          <div className="flex justify-center items-center h-64">
+            <p className="text-lg">Loading domain statistics...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="font-sans flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-10 lg:py-12">
+          <AuthCard className="max-w-md mx-auto">
+            <AuthCardHeader>
+              <AuthCardTitle>Access Denied</AuthCardTitle>
+              <AuthCardDescription>
+                You need to be logged in to access this page.
+              </AuthCardDescription>
+            </AuthCardHeader>
+            <AuthCardContent>
+              <Button
+                onClick={() => router.push('/login')}
+                className="w-full"
+              >
+                <LogInIcon className="mr-2 h-4 w-4" />
+                Go to Login
+              </Button>
+            </AuthCardContent>
+          </AuthCard>
+        </main>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="font-sans flex flex-col min-h-screen">
+        <Header />
         <main className="flex-1 container mx-auto px-4 py-6">
           <div className="flex justify-center items-center h-64">
             <p className="text-lg">Loading domain statistics...</p>
@@ -173,6 +232,7 @@ export default function DomainsPage() {
   if (error) {
     return (
       <div className="font-sans flex flex-col min-h-screen">
+        <Header />
         <main className="flex-1 container mx-auto px-4 py-6">
           <div className="flex justify-center items-center h-64">
             <p className="text-red-500 text-lg">Error: {error}</p>
@@ -200,7 +260,7 @@ export default function DomainsPage() {
           </div>
           
           <div className="w-full">
-            <DomainProbeTable 
+            <DomainProbeTable
               data={domainProbes}
               totalCount={totalCount}
               pageSize={pageSize}

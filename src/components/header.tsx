@@ -5,11 +5,20 @@ import { usePathname } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { MenuIcon } from "lucide-react"
+import { MenuIcon, UserIcon, LogOutIcon } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
+import { useRouter } from "next/navigation"
 
 export function Header() {
   const pathname = usePathname()
+  const { user, logout, isAuthenticated } = useAuth()
+  const router = useRouter()
   
+  const handleLogout = async () => {
+    await logout()
+    router.push("/login")
+  }
+
   return (
     <header className="border-b">
       <div className="container flex h-14 sm:h-16 items-center justify-between px-4">
@@ -96,9 +105,32 @@ export function Header() {
           </div>
           <div className="hidden md:flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="outline" size="sm" className="text-xs sm:text-sm">
-              Sign In
-            </Button>
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 text-sm">
+                  <UserIcon className="h-4 w-4" />
+                  <span className="hidden sm:inline">{user?.email}</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-xs sm:text-sm"
+                >
+                  <LogOutIcon className="h-4 w-4" />
+                  <span className="ml-2 hidden sm:inline">Logout</span>
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push("/login")}
+                className="text-xs sm:text-sm"
+              >
+                Sign In
+              </Button>
+            )}
           </div>
         </div>
       </div>
