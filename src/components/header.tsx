@@ -40,10 +40,10 @@ export function Header() {
               Domains
             </Link>
             <Link
-              href="#"
-              className={pathname === '#' ? 'text-foreground font-medium' : 'text-foreground/60 transition-colors hover:text-foreground/80'}
+              href="/extractions"
+              className={pathname === '/extractions' ? 'text-foreground font-medium' : 'text-foreground/60 transition-colors hover:text-foreground/80'}
             >
-              Reports
+              Extractions
             </Link>
             <Link
               href="#"
@@ -87,10 +87,10 @@ export function Header() {
                       Domains
                     </Link>
                     <Link
-                      href="#"
-                      className={`${pathname === '#' ? 'text-foreground font-medium' : 'text-foreground/60 transition-colors hover:text-foreground/80'} py-2`}
+                      href="/extractions"
+                      className={`${pathname === '/extractions' ? 'text-foreground font-medium' : 'text-foreground/60 transition-colors hover:text-foreground/80'} py-2`}
                     >
-                      Reports
+                      Extractions
                     </Link>
                     <Link
                       href="#"
