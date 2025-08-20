@@ -46,8 +46,8 @@ export function Header() {
               Extractions
             </Link>
             <Link
-              href="#"
-              className={pathname === '#' ? 'text-foreground font-medium' : 'text-foreground/60 transition-colors hover:text-foreground/80'}
+              href="/settings"
+              className={pathname === '/settings' ? 'text-foreground font-medium' : 'text-foreground/60 transition-colors hover:text-foreground/80'}
             >
               Settings
             </Link>
@@ -93,8 +93,8 @@ export function Header() {
                       Extractions
                     </Link>
                     <Link
-                      href="#"
-                      className={`${pathname === '#' ? 'text-foreground font-medium' : 'text-foreground/60 transition-colors hover:text-foreground/80'} py-2`}
+                      href="/settings"
+                      className={`${pathname === '/settings' ? 'text-foreground font-medium' : 'text-foreground/60 transition-colors hover:text-foreground/80'} py-2`}
                     >
                       Settings
                     </Link>

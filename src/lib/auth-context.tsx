@@ -9,6 +9,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
+  updateProfile: (displayName: string, avatarUrl?: string) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
   isAuthenticated: boolean;
 }
@@ -82,7 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: {
           emailRedirectTo: undefined,
-          shouldCreateUser: true,
         }
       });
 
@@ -109,11 +110,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = async (displayName: string, avatarUrl?: string) => {
+    try {
+      console.log('Updating profile:', { displayName, avatarUrl });
+      const { data, error } = await supabase.auth.updateUser({
+        data: {
+          display_name: displayName,
+          avatar_url: avatarUrl
+        }
+      });
+
+      if (error) {
+        console.error('Profile update error:', error);
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        console.log('Profile update successful, new user data:', data.user);
+        setUser(data.user);
+        return { success: true };
+      }
+
+      return { success: false, error: "Profile update failed" };
+    } catch (error: any) {
+      console.error("Profile update error:", error);
+      return { success: false, error: error.message || "An unexpected error occurred" };
+    }
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        setUser(data.user);
+        return { success: true };
+      }
+
+      return { success: false, error: "Password update failed" };
+    } catch (error: any) {
+      console.error("Password update error:", error);
+      return { success: false, error: error.message || "An unexpected error occurred" };
+    }
+  };
+
   const value = {
     user,
     login,
     register,
     logout,
+    updateProfile,
+    updatePassword,
     isLoading,
     isAuthenticated: !!user,
   };
