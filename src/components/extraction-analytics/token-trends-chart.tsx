@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 
 interface Extraction {
   id: string
@@ -19,14 +19,86 @@ interface Extraction {
 
 interface DailyTokenData {
   date: string
-  input_tokens: number
-  output_tokens: number
-  avg_input_tokens: number
-  avg_output_tokens: number
-  min_input_tokens: number
-  min_output_tokens: number
-  max_input_tokens: number
-  max_output_tokens: number
+  input_open: number
+  input_high: number
+  input_low: number
+  input_close: number
+  output_open: number
+  output_high: number
+  output_low: number
+  output_close: number
+}
+
+// Custom candlestick bar component for input tokens
+const InputCandlestickBar = (props: any) => {
+  const { x, y, width, height, input_open, input_close, input_high, input_low } = props
+  const isUp = input_close >= input_open
+  const color = isUp ? "#3b82f6" : "#3b82f6"
+  const highLowColor = "#94a3b8"
+  
+  // Calculate the body dimensions
+  const bodyHeight = Math.abs(input_close - input_open)
+  const bodyY = Math.min(input_open, input_close)
+  
+  return (
+    <g>
+      {/* High-Low line */}
+      <line
+        x1={x + width / 2}
+        y1={input_high}
+        x2={x + width / 2}
+        y2={input_low}
+        stroke={highLowColor}
+        strokeWidth={1}
+      />
+      {/* Open-Close body */}
+      <rect
+        x={x + 1}
+        y={bodyY}
+        width={width - 2}
+        height={Math.max(bodyHeight, 1)}
+        fill={color}
+        stroke={color}
+        strokeWidth={1}
+      />
+    </g>
+  )
+}
+
+// Custom candlestick bar component for output tokens
+const OutputCandlestickBar = (props: any) => {
+  const { x, y, width, height, output_open, output_close, output_high, output_low } = props
+  const isUp = output_close >= output_open
+  const color = isUp ? "#8b5cf6" : "#8b5cf6"
+  const highLowColor = "#94a3b8"
+  
+  // Calculate the body dimensions
+  const bodyHeight = Math.abs(output_close - output_open)
+  const bodyY = Math.min(output_open, output_close)
+  
+  return (
+    <g>
+      {/* High-Low line */}
+      <line
+        x1={x + width / 2}
+        y1={output_high}
+        x2={x + width / 2}
+        y2={output_low}
+        stroke={highLowColor}
+        strokeWidth={1}
+      />
+      {/* Open-Close body */}
+      <rect
+        x={x + 1}
+        y={bodyY}
+        width={width - 2}
+        height={Math.max(bodyHeight, 1)}
+        fill={color}
+        stroke={color}
+        strokeWidth={1}
+      />
+    </g>
+  )
 }
 
 export function TokenTrendsChart({ data, loading }: { data: Extraction[], loading?: boolean }) {
@@ -73,7 +145,7 @@ export function TokenTrendsChart({ data, loading }: { data: Extraction[], loadin
       const inputValues = tokens.input_tokens
       const outputValues = tokens.output_tokens
       
-      // For candlestick, we need OHLC data - for simplicity, we'll use:
+      // For candlestick, we need OHLC data
       // Open: first value of the day (or 0 if none)
       // High: max value of the day
       // Low: min value of the day (or 0 if none)
@@ -89,18 +161,16 @@ export function TokenTrendsChart({ data, loading }: { data: Extraction[], loadin
       const outputLow = outputValues.length > 0 ? Math.min(...outputValues) : 0
       const outputClose = outputValues.length > 0 ? outputValues[outputValues.length - 1] : 0
       
-      // We'll store the OHLC data in our existing structure
-      // For simplicity, we'll use the high/low values to represent the range
       result.push({
         date,
-        input_tokens: inputHigh, // Using high for main value
-        output_tokens: outputHigh, // Using high for main value
-        avg_input_tokens: inputLow, // Using low for secondary value
-        avg_output_tokens: outputLow, // Using low for secondary value
-        min_input_tokens: inputOpen, // Using open for another dimension
-        min_output_tokens: outputOpen, // Using open for another dimension
-        max_input_tokens: inputClose, // Using close for another dimension
-        max_output_tokens: outputClose // Using close for another dimension
+        input_open: inputOpen,
+        input_high: inputHigh,
+        input_low: inputLow,
+        input_close: inputClose,
+        output_open: outputOpen,
+        output_high: outputHigh,
+        output_low: outputLow,
+        output_close: outputClose
       })
     })
 
@@ -130,20 +200,12 @@ export function TokenTrendsChart({ data, loading }: { data: Extraction[], loadin
 
   const chartConfig = {
     input_tokens: {
-      label: "Input Tokens (High)",
-      color: "hsl(var(--chart-1))",
+      label: "Input Tokens",
+      color: "#3b82f6",
     },
     output_tokens: {
-      label: "Output Tokens (High)",
-      color: "hsl(var(--chart-2))",
-    },
-    avg_input_tokens: {
-      label: "Input Tokens (Low)",
-      color: "hsl(var(--chart-3))",
-    },
-    avg_output_tokens: {
-      label: "Output Tokens (Low)",
-      color: "hsl(var(--chart-4))",
+      label: "Output Tokens",
+      color: "#8b5cf6",
     },
   }
 
@@ -152,16 +214,16 @@ export function TokenTrendsChart({ data, loading }: { data: Extraction[], loadin
       <CardHeader>
         <CardTitle>Token Usage Trends</CardTitle>
         <CardDescription>
-          Daily input and output token consumption
+          Daily input and output token consumption (OHLC)
         </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
+            <BarChart data={chartData} barGap={2} barSize={8}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="date"
                 tickLine={false}
                 tickMargin={10}
                 tickFormatter={(value) => {
@@ -169,14 +231,14 @@ export function TokenTrendsChart({ data, loading }: { data: Extraction[], loadin
                   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                 }}
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
               />
-              <ChartTooltip 
+              <ChartTooltip
                 content={
-                  <ChartTooltipContent 
+                  <ChartTooltipContent
                     labelFormatter={(value: string) => {
                       return new Date(value).toLocaleDateString('en-US', {
                         weekday: 'long',
@@ -185,49 +247,36 @@ export function TokenTrendsChart({ data, loading }: { data: Extraction[], loadin
                         day: 'numeric',
                       })
                     }}
+                    formatter={(value, name) => {
+                      const labels: Record<string, string> = {
+                        'input_open': 'Input Open',
+                        'input_high': 'Input High',
+                        'input_low': 'Input Low',
+                        'input_close': 'Input Close',
+                        'output_open': 'Output Open',
+                        'output_high': 'Output High',
+                        'output_low': 'Output Low',
+                        'output_close': 'Output Close',
+                      }
+                      return [Number(value).toLocaleString(), labels[name] || name]
+                    }}
                   />
-                } 
+                }
               />
-              {/* Input Tokens - High/Low range */}
-              <Line
-                type="monotone"
-                dataKey="input_tokens"
-                stroke="var(--color-input_tokens)"
-                strokeWidth={2}
-                dot={{ fill: 'var(--color-input_tokens)', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: 'var(--color-input_tokens)', strokeWidth: 2 }}
-                name="Input Tokens (High)"
+              <ChartLegend content={<ChartLegendContent />} />
+              <Bar
+                dataKey="input_open"
+                fill="#3b82f6"
+                shape={<InputCandlestickBar />}
+                name="Input Tokens"
               />
-              <Line
-                type="monotone"
-                dataKey="avg_input_tokens"
-                stroke="var(--color-avg_input_tokens)"
-                strokeWidth={1}
-                dot={{ fill: 'var(--color-avg_input_tokens)', strokeWidth: 1, r: 2 }}
-                activeDot={{ r: 4, stroke: 'var(--color-avg_input_tokens)', strokeWidth: 1 }}
-                name="Input Tokens (Low)"
+              <Bar
+                dataKey="output_open"
+                fill="#8b5cf6"
+                shape={<OutputCandlestickBar />}
+                name="Output Tokens"
               />
-              
-              {/* Output Tokens - High/Low range */}
-              <Line
-                type="monotone"
-                dataKey="output_tokens"
-                stroke="var(--color-output_tokens)"
-                strokeWidth={2}
-                dot={{ fill: 'var(--color-output_tokens)', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: 'var(--color-output_tokens)', strokeWidth: 2 }}
-                name="Output Tokens (High)"
-              />
-              <Line
-                type="monotone"
-                dataKey="avg_output_tokens"
-                stroke="var(--color-avg_output_tokens)"
-                strokeWidth={1}
-                dot={{ fill: 'var(--color-avg_output_tokens)', strokeWidth: 1, r: 2 }}
-                activeDot={{ r: 4, stroke: 'var(--color-avg_output_tokens)', strokeWidth: 1 }}
-                name="Output Tokens (Low)"
-              />
-            </LineChart>
+            </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
       </CardContent>

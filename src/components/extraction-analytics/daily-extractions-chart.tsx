@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 
 interface Extraction {
   id: string
@@ -81,11 +81,11 @@ export function DailyExtractionsChart({ data, loading }: { data: Extraction[], l
   const chartConfig = {
     total: {
       label: "Total Extractions",
-      color: "hsl(var(--chart-1))",
+      color: "#f59e0b",
     },
     complete: {
       label: "Completed Extractions",
-      color: "hsl(var(--chart-2))",
+      color: "#10b981",
     },
   }
 
@@ -101,9 +101,9 @@ export function DailyExtractionsChart({ data, loading }: { data: Extraction[], l
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis
+                dataKey="date"
                 tickLine={false}
                 tickMargin={10}
                 tickFormatter={(value) => {
@@ -111,14 +111,14 @@ export function DailyExtractionsChart({ data, loading }: { data: Extraction[], l
                   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                 }}
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
               />
-              <ChartTooltip 
+              <ChartTooltip
                 content={
-                  <ChartTooltipContent 
+                  <ChartTooltipContent
                     labelFormatter={(value: string) => {
                       return new Date(value).toLocaleDateString('en-US', {
                         weekday: 'long',
@@ -128,17 +128,20 @@ export function DailyExtractionsChart({ data, loading }: { data: Extraction[], l
                       })
                     }}
                   />
-                } 
+                }
               />
+              <ChartLegend content={<ChartLegendContent />} />
               <Bar
                 dataKey="total"
-                fill="var(--color-total)"
+                fill="#f59e0b"
                 radius={[4, 4, 0, 0]}
+                name="Total Extractions"
               />
               <Bar
                 dataKey="complete"
-                fill="var(--color-complete)"
+                fill="#10b981"
                 radius={[4, 4, 0, 0]}
+                name="Completed Extractions"
               />
             </BarChart>
           </ResponsiveContainer>

@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 
 interface Extraction {
   id: string
@@ -124,11 +124,11 @@ export function EfficiencyMetricsChart({
   const chartConfig = {
     grants_per_input_token: {
       label: "Input Tokens per Grant",
-      color: "hsl(var(--chart-1))",
+      color: "#3b82f6",
     },
     grants_per_output_token: {
       label: "Output Tokens per Grant",
-      color: "hsl(var(--chart-2))",
+      color: "#8b5cf6",
     },
   }
 
@@ -144,7 +144,7 @@ export function EfficiencyMetricsChart({
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis
                 dataKey="date"
                 tickLine={false}
@@ -170,37 +170,26 @@ export function EfficiencyMetricsChart({
                         day: 'numeric',
                       })
                     }}
-                    formatter={(value) => [Number(value), 'Tokens per Grant']}
+                    formatter={(value: any) => [Number(value), 'Tokens per Grant']}
                   />
                 }
               />
+              <ChartLegend content={<ChartLegendContent />} />
               <Bar
                 dataKey="grants_per_input_token"
-                fill="var(--color-grants_per_input_token)"
+                fill="#3b82f6"
                 radius={[4, 4, 0, 0]}
                 name="Input Tokens per Grant"
               />
               <Bar
                 dataKey="grants_per_output_token"
-                fill="var(--color-grants_per_output_token)"
+                fill="#8b5cf6"
                 radius={[4, 4, 0, 0]}
                 name="Output Tokens per Grant"
               />
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
-        
-        {/* Classic Legend */}
-        <div className="flex items-center justify-center gap-4 pt-4">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(var(--chart-1))' }}></div>
-            <span className="text-sm text-muted-foreground">Input Tokens</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(var(--chart-2))' }}></div>
-            <span className="text-sm text-muted-foreground">Output Tokens</span>
-          </div>
-        </div>
       </CardContent>
     </Card>
   )
