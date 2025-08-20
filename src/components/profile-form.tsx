@@ -27,7 +27,9 @@ export function ProfileForm({ user, avatarUrl: initialAvatarUrl, onProfileUpdate
 
   useEffect(() => {
     if (user) {
-      setDisplayName(user.user_metadata?.full_name || user.email?.split("@")[0] || "");
+      console.log('User data in ProfileForm:', user);
+      console.log('User metadata:', user.user_metadata);
+      setDisplayName(user.user_metadata?.display_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "");
     }
     setAvatarUrl(initialAvatarUrl);
   }, [user, initialAvatarUrl]);
@@ -35,7 +37,7 @@ export function ProfileForm({ user, avatarUrl: initialAvatarUrl, onProfileUpdate
   // Force refresh mechanism
   const triggerRefresh = () => {
     if (user) {
-      setDisplayName(user.user_metadata?.full_name || user.email?.split("@")[0] || "");
+      setDisplayName(user.user_metadata?.display_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "");
       setAvatarUrl(initialAvatarUrl);
     }
   };
@@ -93,7 +95,7 @@ export function ProfileForm({ user, avatarUrl: initialAvatarUrl, onProfileUpdate
 
   const handleCancel = () => {
     if (user) {
-      setDisplayName(user.user_metadata?.full_name || user.email?.split("@")[0] || "");
+      setDisplayName(user.user_metadata?.display_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "");
     }
     setIsEditing(false);
     setError("");

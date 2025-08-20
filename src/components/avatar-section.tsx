@@ -8,6 +8,7 @@ import { CheckCircleIcon, AlertCircle } from "lucide-react";
 import { useState, useRef } from "react";
 import { uploadAvatar } from "@/lib/supabase";
 import { Spinner } from "@/components/ui/spinner";
+import { useAuth } from "@/lib/auth-context";
 
 interface AvatarSectionProps {
   user: User | null;
@@ -15,6 +16,7 @@ interface AvatarSectionProps {
 }
 
 export function AvatarSection({ user, onAvatarUpdate }: AvatarSectionProps) {
+  const { updateProfile } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -55,13 +57,31 @@ export function AvatarSection({ user, onAvatarUpdate }: AvatarSectionProps) {
         if (success && avatarUrl) {
           setUploadedAvatarUrl(avatarUrl);
           
+          // Automatically save avatar URL to user profile metadata
+          try {
+            console.log('Auto-saving avatar URL to profile metadata:', avatarUrl);
+            const displayName = user?.user_metadata?.display_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
+            const { success: profileUpdateSuccess, error: profileUpdateError } = await updateProfile(displayName, avatarUrl);
+            console.log('Profile update result:', { profileUpdateSuccess, profileUpdateError });
+            
+            if (profileUpdateSuccess) {
+              console.log('Avatar URL auto-saved to profile successfully');
+            } else {
+              console.error('Failed to auto-save avatar URL to profile:', profileUpdateError);
+              setErrorMessage("Avatar uploaded but failed to save to profile. Please try saving manually.");
+            }
+          } catch (profileUpdateError: any) {
+            console.error('Error auto-saving avatar URL to profile:', profileUpdateError);
+            setErrorMessage("Avatar uploaded but failed to save to profile. Please try saving manually.");
+          }
+          
           // Notify parent component of avatar update
           if (onAvatarUpdate) {
             console.log('Calling onAvatarUpdate with URL:', avatarUrl);
             onAvatarUpdate(avatarUrl);
           }
           
-          setSuccessMessage("Avatar uploaded successfully!");
+          setSuccessMessage("Avatar uploaded and automatically saved to your profile!");
           setPreviewUrl(null); // Clear preview since we're showing the actual avatar now
           setIsUploading(false);
         } else {

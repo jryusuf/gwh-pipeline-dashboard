@@ -37,6 +37,8 @@ export function ProfileSettingsCard({ user }: ProfileSettingsCardProps) {
   const handleAvatarUpdate = (newAvatarUrl: string) => {
     console.log('handleAvatarUpdate called with:', newAvatarUrl);
     setAvatarUrl(newAvatarUrl);
+    // Trigger profile refresh to ensure the latest avatar URL is used
+    setTimeout(() => forceRefresh(), 100);
   };
 
   return (

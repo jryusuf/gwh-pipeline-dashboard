@@ -39,7 +39,13 @@ export function PasswordChangeCard() {
     setError("");
     setSaveSuccess(false);
     
-    // Validate passwords
+    // Validate current password
+    if (!currentPassword) {
+      setError("Please enter your current password");
+      return;
+    }
+    
+    // Validate new passwords
     const passwordError = validatePassword(newPassword);
     if (passwordError) {
       setError(passwordError);
@@ -55,7 +61,7 @@ export function PasswordChangeCard() {
     setIsSaving(true);
     
     try {
-      const { success, error: updateError } = await updatePassword(newPassword);
+      const { success, error: updateError } = await updatePassword(currentPassword, newPassword);
       
       if (success) {
         setSaveSuccess(true);

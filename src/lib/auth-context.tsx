@@ -10,7 +10,7 @@ interface AuthContextType {
   register: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (displayName: string, avatarUrl?: string) => Promise<{ success: boolean; error?: string }>;
-  updatePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
   isAuthenticated: boolean;
 }
@@ -138,8 +138,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updatePassword = async (newPassword: string) => {
+  const updatePassword = async (currentPassword: string, newPassword: string) => {
     try {
+      // First, verify the current password by attempting to sign in
+      if (!user?.email) {
+        return { success: false, error: "User not authenticated" };
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      });
+
+      if (signInError) {
+        return { success: false, error: "Current password is incorrect" };
+      }
+
+      // If current password is correct, update to the new password
       const { data, error } = await supabase.auth.updateUser({
         password: newPassword
       });
