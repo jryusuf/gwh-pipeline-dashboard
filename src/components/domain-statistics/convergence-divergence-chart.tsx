@@ -12,19 +12,43 @@ interface ConvergenceDivergenceData {
 }
 
 export function ConvergenceDivergenceChart({ data }: { data: ConvergenceDivergenceData[] }) {
+  const [isClient, setIsClient] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   const chartConfig = {
     discovered_count: {
       label: "Discovered Domains",
       color: "#3b82f6", // blue
     },
     probed_count: {
-      label: "Probed Domains", 
+      label: "Probed Domains",
       color: "#10b981", // green
     },
     date: {
       label: "Date",
       color: "hsl(var(--chart-2))",
     },
+  }
+
+  if (!isClient) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Domain Discovery vs Probe Convergence</CardTitle>
+          <CardDescription>
+            Comparison of daily discovered domains vs daily probed domains (last 14 days)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="min-h-[300px] w-full flex items-center justify-center">
+            <div className="text-muted-foreground">Loading chart...</div>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -40,8 +64,8 @@ export function ConvergenceDivergenceChart({ data }: { data: ConvergenceDivergen
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tickLine={false}
                 tickMargin={10}
                 tickFormatter={(value) => {
@@ -49,14 +73,14 @@ export function ConvergenceDivergenceChart({ data }: { data: ConvergenceDivergen
                   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                 }}
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
               />
-              <ChartTooltip 
+              <ChartTooltip
                 content={
-                  <ChartTooltipContent 
+                  <ChartTooltipContent
                     labelFormatter={(value: string) => {
                       return new Date(value).toLocaleDateString('en-US', {
                         weekday: 'long',
@@ -66,26 +90,26 @@ export function ConvergenceDivergenceChart({ data }: { data: ConvergenceDivergen
                       })
                     }}
                   />
-                } 
+                }
               />
-              <Legend 
+              <Legend
                 verticalAlign="top"
                 height={36}
               />
-              <Line 
-                type="monotone" 
-                dataKey="discovered_count" 
+              <Line
+                type="monotone"
+                dataKey="discovered_count"
                 name="Discovered Domains"
-                stroke="var(--color-discovered_count)" 
+                stroke="var(--color-discovered_count)"
                 strokeWidth={2}
                 dot={{ fill: 'var(--color-discovered_count)', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, stroke: 'var(--color-discovered_count)', strokeWidth: 2 }}
               />
-              <Line 
-                type="monotone" 
-                dataKey="probed_count" 
+              <Line
+                type="monotone"
+                dataKey="probed_count"
                 name="Probed Domains"
-                stroke="var(--color-probed_count)" 
+                stroke="var(--color-probed_count)"
                 strokeWidth={2}
                 dot={{ fill: 'var(--color-probed_count)', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, stroke: 'var(--color-probed_count)', strokeWidth: 2 }}

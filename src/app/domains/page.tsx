@@ -45,7 +45,7 @@ export default function DomainsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
-    from: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+    from: new Date(),
     to: new Date()
   });
   const [pageIndex, setPageIndex] = useState(0);
@@ -63,6 +63,19 @@ export default function DomainsPage() {
     if (!isAuthenticated) return;
 
     fetchData();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Initialize date range with proper dates
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+    
+    setDateRange({
+      from: fourteenDaysAgo,
+      to: new Date()
+    });
   }, [isAuthenticated]);
 
   useEffect(() => {

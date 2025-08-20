@@ -14,6 +14,12 @@ interface DomainStats {
 const COLORS = ["#10b981", "#ef4444", "#94a3b8"]
 
 export function DomainDonutChart({ data }: { data: DomainStats | null }) {
+  const [isClient, setIsClient] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   const chartData = data ? [
     { name: "Probed Domains", value: data.probed },
     { name: "Never Probed", value: data.never_probed },
@@ -31,6 +37,29 @@ export function DomainDonutChart({ data }: { data: DomainStats | null }) {
   }
 
   const total = data ? data.probed + data.never_probed : 0
+
+  if (!isClient) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Domain Probe Status</CardTitle>
+          <CardDescription>
+            Distribution of probed vs never probed domains
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="min-h-[300px] w-full flex items-center justify-center">
+            <div className="text-muted-foreground">Loading chart...</div>
+          </div>
+          <div className="text-center mt-4">
+            <p className="text-sm text-muted-foreground">
+              Total Domains: {total.toLocaleString()}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card className="w-full">
@@ -59,8 +88,8 @@ export function DomainDonutChart({ data }: { data: DomainStats | null }) {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <ChartTooltip 
-                content={<ChartTooltipContent />} 
+              <ChartTooltip
+                content={<ChartTooltipContent />}
               />
               <Legend />
             </PieChart>

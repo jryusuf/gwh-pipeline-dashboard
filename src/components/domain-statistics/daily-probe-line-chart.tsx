@@ -11,6 +11,12 @@ interface DailyProbeCount {
 }
 
 export function DailyProbeLineChart({ data }: { data: DailyProbeCount[] }) {
+  const [isClient, setIsClient] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   const chartConfig = {
     probe_count: {
       label: "Probed Domains",
@@ -20,6 +26,24 @@ export function DailyProbeLineChart({ data }: { data: DailyProbeCount[] }) {
       label: "Date",
       color: "hsl(var(--chart-2))",
     },
+  }
+
+  if (!isClient) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Daily Probe Activity</CardTitle>
+          <CardDescription>
+            Number of domains probed each day (last 14 days)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="min-h-[300px] w-full flex items-center justify-center">
+            <div className="text-muted-foreground">Loading chart...</div>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -35,8 +59,8 @@ export function DailyProbeLineChart({ data }: { data: DailyProbeCount[] }) {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="probe_date" 
+              <XAxis
+                dataKey="probe_date"
                 tickLine={false}
                 tickMargin={10}
                 tickFormatter={(value) => {
@@ -44,14 +68,14 @@ export function DailyProbeLineChart({ data }: { data: DailyProbeCount[] }) {
                   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                 }}
               />
-              <YAxis 
+              <YAxis
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
               />
-              <ChartTooltip 
+              <ChartTooltip
                 content={
-                  <ChartTooltipContent 
+                  <ChartTooltipContent
                     labelFormatter={(value: string) => {
                       return new Date(value).toLocaleDateString('en-US', {
                         weekday: 'long',
@@ -61,12 +85,12 @@ export function DailyProbeLineChart({ data }: { data: DailyProbeCount[] }) {
                       })
                     }}
                   />
-                } 
+                }
               />
-              <Line 
-                type="monotone" 
-                dataKey="probe_count" 
-                stroke="var(--color-probe_count)" 
+              <Line
+                type="monotone"
+                dataKey="probe_count"
+                stroke="var(--color-probe_count)"
                 strokeWidth={2}
                 dot={{ fill: 'var(--color-probe_count)', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, stroke: 'var(--color-probe_count)', strokeWidth: 2 }}
