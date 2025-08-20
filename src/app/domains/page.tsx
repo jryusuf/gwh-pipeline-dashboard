@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DomainDonutChart } from '@/components/domain-statistics/domain-donut-chart';
 import { DailyProbeLineChart } from '@/components/domain-statistics/daily-probe-line-chart';
+import { ConvergenceDivergenceChart } from '@/components/domain-statistics/convergence-divergence-chart';
 import { DomainProbeTable } from '@/components/domain-statistics/domain-probe-table';
 import { Header } from '@/components/header';
 import { useAuth } from '@/lib/auth-context';
@@ -28,8 +29,14 @@ interface DomainProbe {
   domain: string;
   last_probe_ts: string;
 }
+interface DailyConvergenceData {
+  date: string;
+  discovered_count: number;
+  probed_count: number;
+}
 
 export default function DomainsPage() {
+  const [convergenceData, setConvergenceData] = useState<DailyConvergenceData[]>([]);
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [domainStats, setDomainStats] = useState<DomainStats | null>(null);
@@ -143,6 +150,45 @@ export default function DomainsPage() {
         .sort((a, b) => a.probe_date.localeCompare(b.probe_date));
       
       setDailyProbeData(result);
+      // Fetch daily discovered domains for last 14 days
+      const { data: discoveredData, error: discoveredError } = await supabase
+        .from('domains')
+        .select('created_at')
+        .gte('created_at', fourteenDaysAgo.toISOString())
+        .order('created_at', { ascending: true });
+      
+      if (discoveredError) {
+        throw new Error(`Failed to fetch daily discovered counts: ${discoveredError.message}`);
+      }
+      
+      // Process discovered data
+      const discoveredCounts: Record<string, number> = {};
+      
+      // Initialize all days in the past 14 days with 0 counts
+      for (let i = 0; i <= 14; i++) {
+        const date = new Date(fourteenDaysAgo);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        discoveredCounts[dateStr] = 0;
+      }
+      
+      // Count the actual discovered data
+      discoveredData.forEach(item => {
+        const date = new Date(item.created_at);
+        const dateStr = date.toISOString().split('T')[0];
+        discoveredCounts[dateStr] = (discoveredCounts[dateStr] || 0) + 1;
+      });
+      
+      // Combine both datasets by date
+      const convergenceResult: DailyConvergenceData[] = Object.keys(dailyCounts)
+        .map(date => ({
+          date,
+          discovered_count: discoveredCounts[date] || 0,
+          probed_count: dailyCounts[date] || 0
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+      
+      setConvergenceData(convergenceResult);
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
@@ -257,6 +303,10 @@ export default function DomainsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <DomainDonutChart data={domainStats} />
             <DailyProbeLineChart data={dailyProbeData} />
+          </div>
+          
+          <div className="w-full">
+            <ConvergenceDivergenceChart data={convergenceData} />
           </div>
           
           <div className="w-full">
