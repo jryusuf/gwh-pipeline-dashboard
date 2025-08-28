@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -205,6 +206,18 @@ export function GrantClustersTable({
         const count = row.getValue("raw_grant_count") as number
         return <div className="font-medium">{count}</div>
       },
+      size: 120,
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }: { row: Row<GrantCluster> }) => (
+        <Link href={`/grant-clusters/${row.original.id}`} passHref>
+          <Button variant="outline" size="sm">
+            View Details
+          </Button>
+        </Link>
+      ),
       size: 120,
     },
   ]
