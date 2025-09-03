@@ -22,7 +22,8 @@ COPY .env.local .env.local
 RUN npm run build -- --no-lint
 
 # Remove development dependencies for smaller production image
-RUN npm prune --production
+# BUT keep TypeScript since it's needed at runtime for next.config.ts
+RUN npm prune --production && npm install typescript
 
 # Expose the port the app runs on
 EXPOSE 3000
